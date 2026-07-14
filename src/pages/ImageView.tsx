@@ -33,7 +33,9 @@ export default function ImageView() {
     slideIndexFor(params.get('review'), Number(params.get('photo') ?? 0)),
   )
   const [expanded, setExpanded] = useState(false)
+  const [pagerOpen, setPagerOpen] = useState(false)
   const trackRef = useRef<HTMLDivElement>(null)
+  const stripRef = useRef<HTMLDivElement>(null)
   const drag = useRef({ startX: 0, startLeft: 0, active: false, moved: false })
 
   const review = slides[active].review
@@ -122,6 +124,14 @@ export default function ImageView() {
   const toggleExpanded = (next: boolean) => {
     withLocalTransition(() => flushSync(() => setExpanded(next)))
   }
+
+  // keep the active thumb centered in the expanded photo strip
+  useLayoutEffect(() => {
+    if (!pagerOpen) return
+    stripRef.current
+      ?.querySelector('[data-pill-active="true"]')
+      ?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [pagerOpen, active])
 
   const close = () => {
     const source = getMorphSource()
@@ -215,7 +225,7 @@ export default function ImageView() {
         </div>
 
         {/* Action bar: like / share / zoom + photo pager */}
-        <div className="iv-actionbar">
+        <div className={pagerOpen ? 'iv-actionbar iv-actionbar--pager-open' : 'iv-actionbar'}>
           <div className="iv-actionbar__left">
             <button className="iv-action" aria-label="Like">
               <img src="/assets/iv2-like.svg" width={24} height={24} alt="" />
@@ -227,38 +237,55 @@ export default function ImageView() {
               <img src="/assets/iv2-search.svg" width={24} height={24} alt="" />
             </button>
           </div>
-          <div className="iv-pager">
-            <button className="iv-pager__nav" aria-label="Previous photo" disabled={active === 0} onClick={() => goTo(active - 1)}>
-              <img src="/assets/iv2-chevron-left.svg" width={20} height={20} alt="" />
-            </button>
-            <div className="iv-pager__cluster">
-              {prevSlide && (
-                <span className="iv-pager__thumb iv-pager__thumb--side iv-pager__thumb--prev">
-                  <img src={prevSlide.photo.src} alt="" />
+          {pagerOpen ? (
+            <>
+              <button className="iv-pager-backdrop" aria-label="Close photo strip" onClick={() => setPagerOpen(false)} />
+              <div className="iv-pager iv-pager--open">
+                <button className="iv-pager__close" aria-label="Collapse photos" onClick={() => setPagerOpen(false)}>
+                  <img src="/assets/iv-cross.svg" width={16} height={16} alt="" />
+                </button>
+                <div className="h-scroll iv-pager__strip" ref={stripRef}>
+                  {slides.map((slide, i) => (
+                    <button
+                      key={slide.photo.id}
+                      data-pill-active={i === active}
+                      className={i === active ? 'iv-pager__pill iv-pager__pill--active' : 'iv-pager__pill'}
+                      onClick={() => goTo(i)}
+                      aria-label={`Photo ${i + 1}`}
+                    >
+                      <img
+                        src={slide.photo.src}
+                        alt=""
+                        style={expanded && i === active ? { viewTransitionName: MORPH_NAME } : undefined}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <button className="iv-pager" aria-label="Show all photos" onClick={() => setPagerOpen(true)}>
+              <span className="iv-pager__cluster">
+                {prevSlide && (
+                  <span className="iv-pager__thumb iv-pager__thumb--side iv-pager__thumb--prev">
+                    <img src={prevSlide.photo.src} alt="" />
+                  </span>
+                )}
+                <span className="iv-pager__thumb iv-pager__thumb--active">
+                  <img
+                    src={slides[active].photo.src}
+                    alt=""
+                    style={expanded ? { viewTransitionName: MORPH_NAME } : undefined}
+                  />
                 </span>
-              )}
-              <span className="iv-pager__thumb iv-pager__thumb--active">
-                <img
-                  src={slides[active].photo.src}
-                  alt=""
-                  style={expanded ? { viewTransitionName: MORPH_NAME } : undefined}
-                />
+                {nextSlide && (
+                  <span className="iv-pager__thumb iv-pager__thumb--side iv-pager__thumb--next">
+                    <img src={nextSlide.photo.src} alt="" />
+                  </span>
+                )}
               </span>
-              {nextSlide && (
-                <span className="iv-pager__thumb iv-pager__thumb--side iv-pager__thumb--next">
-                  <img src={nextSlide.photo.src} alt="" />
-                </span>
-              )}
-            </div>
-            <button
-              className="iv-pager__nav"
-              aria-label="Next photo"
-              disabled={active === slides.length - 1}
-              onClick={() => goTo(active + 1)}
-            >
-              <img src="/assets/iv2-chevron-right.svg" width={20} height={20} alt="" />
             </button>
-          </div>
+          )}
         </div>
       </div>
 
