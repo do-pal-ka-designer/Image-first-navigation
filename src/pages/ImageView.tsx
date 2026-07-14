@@ -60,7 +60,7 @@ export default function ImageView() {
 
   const onScroll = () => {
     const el = trackRef.current
-    if (!el || drag.current.active || expanded) return
+    if (!el || drag.current.active || expanded || pagerOpen) return
     const idx = Math.round(el.scrollLeft / el.clientWidth)
     if (idx !== active && idx >= 0 && idx < slides.length) setActive(idx)
   }
@@ -270,22 +270,25 @@ export default function ImageView() {
             <>
               <button className="iv-pager-backdrop" aria-label="Close gallery" onClick={() => toggleGallery(false)} />
               <div className="iv-gallery" style={{ viewTransitionName: 'photo-gallery' }} role="dialog" aria-label="All review photos">
-                {slides.map((slide, i) => (
-                  <button
-                    key={slide.photo.id}
-                    className="iv-gallery__tile"
-                    onClick={() => selectFromGallery(i)}
-                    aria-label={`Open ${slide.review.userName}'s photo, rated ${slide.review.rating} stars`}
-                  >
-                    <img src={slide.photo.src} alt="" loading="lazy" />
-                    <span className="iv-gallery__overlay">
-                      <span className="iv-gallery__chip">
-                        {slide.review.rating}
-                        <img src="/assets/iv-star-white.svg" width={10} height={10} alt="" />
+                {/* tiles repeated 4x to exercise scrolling until there are more real photos */}
+                {Array.from({ length: 4 }).flatMap((_, rep) =>
+                  slides.map((slide, i) => (
+                    <button
+                      key={`${rep}-${slide.photo.id}`}
+                      className="iv-gallery__tile"
+                      onClick={() => selectFromGallery(i)}
+                      aria-label={`Open ${slide.review.userName}'s photo, rated ${slide.review.rating} stars`}
+                    >
+                      <img src={slide.photo.src} alt="" loading="lazy" />
+                      <span className="iv-gallery__overlay">
+                        <span className="iv-gallery__chip">
+                          {slide.review.rating}
+                          <img src="/assets/iv-star-white.svg" width={10} height={10} alt="" />
+                        </span>
                       </span>
-                    </span>
-                  </button>
-                ))}
+                    </button>
+                  )),
+                )}
               </div>
             </>
           ) : (
