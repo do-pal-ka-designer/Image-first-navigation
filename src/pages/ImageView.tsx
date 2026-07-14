@@ -35,7 +35,6 @@ export default function ImageView() {
   const [expanded, setExpanded] = useState(false)
   const [pagerOpen, setPagerOpen] = useState(false)
   const trackRef = useRef<HTMLDivElement>(null)
-  const stripRef = useRef<HTMLDivElement>(null)
   const drag = useRef({ startX: 0, startLeft: 0, active: false, moved: false })
 
   const review = slides[active].review
@@ -64,17 +63,6 @@ export default function ImageView() {
     if (!el || drag.current.active || expanded) return
     const idx = Math.round(el.scrollLeft / el.clientWidth)
     if (idx !== active && idx >= 0 && idx < slides.length) setActive(idx)
-  }
-
-  const goTo = (i: number) => {
-    const el = trackRef.current
-    const idx = Math.max(0, Math.min(slides.length - 1, i))
-    if (el) el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' })
-    if (expanded) {
-      flushSync(() => setActive(idx))
-      el?.scrollTo({ left: idx * (el?.clientWidth || 0) })
-      toggleExpanded(false)
-    }
   }
 
   // mouse drag-to-swipe (touch swiping is native via scroll-snap)
@@ -125,13 +113,30 @@ export default function ImageView() {
     withLocalTransition(() => flushSync(() => setExpanded(next)))
   }
 
-  // keep the active thumb centered in the expanded photo strip
-  useLayoutEffect(() => {
-    if (!pagerOpen) return
-    stripRef.current
-      ?.querySelector('[data-pill-active="true"]')
-      ?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
-  }, [pagerOpen, active])
+  /* gallery modal: the pill morphs into a grid of all photos and back */
+  const toggleGallery = (next: boolean) => {
+    withLocalTransition(() => flushSync(() => setPagerOpen(next)))
+  }
+
+  const selectFromGallery = (i: number) => {
+    const el = trackRef.current
+    // snap must stay off until the morph settles, or Chrome re-snaps to the
+    // old position mid-transition and undoes the selection
+    if (el) el.style.scrollSnapType = 'none'
+    withLocalTransition(() =>
+      flushSync(() => {
+        setPagerOpen(false)
+        setActive(i)
+        if (el) el.scrollLeft = i * el.clientWidth
+      }),
+    )
+    window.setTimeout(() => {
+      if (el) {
+        el.scrollLeft = i * el.clientWidth
+        el.style.scrollSnapType = ''
+      }
+    }, 500)
+  }
 
   // open the OS share sheet for the active photo; fall back to copying the URL
   const share = async () => {
@@ -263,32 +268,33 @@ export default function ImageView() {
         <div className={pagerOpen ? 'iv-actionbar iv-actionbar--pager-open' : 'iv-actionbar'}>
           {pagerOpen ? (
             <>
-              <button className="iv-pager-backdrop" aria-label="Close photo strip" onClick={() => setPagerOpen(false)} />
-              <div className="iv-pager iv-pager--open">
-                <button className="iv-pager__close" aria-label="Collapse photos" onClick={() => setPagerOpen(false)}>
-                  <img src="/assets/iv-cross.svg" width={20} height={20} alt="" />
-                </button>
-                <div className="h-scroll iv-pager__strip" ref={stripRef}>
-                  {slides.map((slide, i) => (
-                    <button
-                      key={slide.photo.id}
-                      data-pill-active={i === active}
-                      className={i === active ? 'iv-pager__pill iv-pager__pill--active' : 'iv-pager__pill'}
-                      onClick={() => goTo(i)}
-                      aria-label={`Photo ${i + 1}`}
-                    >
-                      <img
-                        src={slide.photo.src}
-                        alt=""
-                        style={expanded && i === active ? { viewTransitionName: MORPH_NAME } : undefined}
-                      />
-                    </button>
-                  ))}
-                </div>
+              <button className="iv-pager-backdrop" aria-label="Close gallery" onClick={() => toggleGallery(false)} />
+              <div className="iv-gallery" style={{ viewTransitionName: 'photo-gallery' }} role="dialog" aria-label="All review photos">
+                {slides.map((slide, i) => (
+                  <button
+                    key={slide.photo.id}
+                    className="iv-gallery__tile"
+                    onClick={() => selectFromGallery(i)}
+                    aria-label={`Open ${slide.review.userName}'s photo, rated ${slide.review.rating} stars`}
+                  >
+                    <img src={slide.photo.src} alt="" loading="lazy" />
+                    <span className="iv-gallery__overlay">
+                      <span className="iv-gallery__chip">
+                        {slide.review.rating}
+                        <img src="/assets/iv-star-white.svg" width={10} height={10} alt="" />
+                      </span>
+                    </span>
+                  </button>
+                ))}
               </div>
             </>
           ) : (
-            <button className="iv-pager" aria-label="Show all photos" onClick={() => setPagerOpen(true)}>
+            <button
+              className="iv-pager"
+              aria-label="Show all photos"
+              style={{ viewTransitionName: 'photo-gallery' }}
+              onClick={() => toggleGallery(true)}
+            >
               <span className="iv-pager__cluster">
                 {prevSlide && (
                   <span className="iv-pager__thumb iv-pager__thumb--side iv-pager__thumb--prev">

@@ -162,6 +162,26 @@ img {
   overflow: hidden;
 }
 
+/* pager pill <-> gallery modal morph */
+::view-transition-group(photo-gallery) {
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+::view-transition-old(photo-gallery),
+::view-transition-new(photo-gallery) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+::view-transition-image-pair(photo-gallery) {
+  isolation: isolate;
+  border-radius: 28px;
+  overflow: hidden;
+}
+
 /* same-document transitions (expand/collapse in the image view): the photo
    still morphs, but the rest of the page does a plain quick cross-fade —
    no white flash, no staged delay */
