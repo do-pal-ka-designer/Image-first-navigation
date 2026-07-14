@@ -133,6 +133,25 @@ export default function ImageView() {
       ?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
   }, [pagerOpen, active])
 
+  // open the OS share sheet for the active photo; fall back to copying the URL
+  const share = async () => {
+    const slide = slides[active]
+    const url = new URL(window.location.href)
+    url.searchParams.set('review', slide.review.id)
+    url.searchParams.set('photo', String(slide.review.photos.indexOf(slide.photo)))
+    const data = {
+      title: product.name,
+      text: `${slide.review.userName}'s review of ${product.name}`,
+      url: url.toString(),
+    }
+    try {
+      if (navigator.share) await navigator.share(data)
+      else await navigator.clipboard?.writeText(data.url)
+    } catch {
+      /* user dismissed the sheet — nothing to do */
+    }
+  }
+
   const close = () => {
     const source = getMorphSource()
     if (!source) {
@@ -230,7 +249,7 @@ export default function ImageView() {
             <button className="iv-action" aria-label="Like">
               <img src="/assets/iv2-like.svg" width={24} height={24} alt="" />
             </button>
-            <button className="iv-action" aria-label="Share">
+            <button className="iv-action" aria-label="Share" onClick={share}>
               <img src="/assets/iv2-share.svg" width={24} height={24} alt="" />
             </button>
             <button className="iv-action" aria-label="Zoom">
