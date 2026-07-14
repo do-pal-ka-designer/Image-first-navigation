@@ -320,6 +320,19 @@
   background: transparent;
 }
 
+/* dim the page behind the gallery modal to cut visual clutter */
+.iv-header,
+.iv-carousel-wrap,
+.iv-quickview {
+  transition: opacity 0.25s ease;
+}
+
+.iv--gallery-open .iv-header,
+.iv--gallery-open .iv-carousel-wrap,
+.iv--gallery-open .iv-quickview {
+  opacity: 0.35;
+}
+
 /* gallery modal — the pill morphs into this grid of all review photos */
 .iv-gallery {
   position: absolute;

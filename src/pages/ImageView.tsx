@@ -180,7 +180,7 @@ export default function ImageView() {
   const nextSlide = active < slides.length - 1 ? slides[active + 1] : null
 
   return (
-    <div className="app-shell iv">
+    <div className={pagerOpen ? 'app-shell iv iv--gallery-open' : 'app-shell iv'}>
       {/* Review header — content keyed by review so it animates on change */}
       <header className={expanded ? 'iv-header iv-header--expanded' : 'iv-header'}>
         <div className="iv-header__content" key={review.id}>
