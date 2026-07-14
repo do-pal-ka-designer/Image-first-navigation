@@ -85,6 +85,28 @@ export default function ImageView() {
     return () => cancelAnimationFrame(id)
   }, [pagerOpen])
 
+  // spring the newly-settled card: it slides in from the swipe direction and
+  // overshoots slightly before settling (back-ease, decoupled from the native
+  // scroll so it doesn't fight snapping)
+  const prevActiveRef = useRef(active)
+  useEffect(() => {
+    const prev = prevActiveRef.current
+    prevActiveRef.current = active
+    if (prev === active) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const slide = trackRef.current?.children[active] as HTMLElement | undefined
+    const img = slide?.querySelector('.iv-card__img') as HTMLElement | undefined
+    if (!img?.animate) return
+    const dir = active > prev ? 1 : -1
+    // Web Animations API: runs independently of React's inline styles; the
+    // back-ease carries the card slightly past its resting point (overshoot)
+    const anim = img.animate(
+      [{ transform: `translateX(${dir * 22}px)` }, { transform: 'translateX(0)' }],
+      { duration: 560, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' },
+    )
+    return () => anim.cancel()
+  }, [active])
+
   const onScroll = () => {
     const el = trackRef.current
     if (!el) return
