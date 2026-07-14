@@ -1,6 +1,12 @@
 export interface ReviewPhoto {
   id: string
   src: string
+  /** per-image review shown in the image-first view (each photo is its own entry) */
+  userName?: string
+  rating?: number
+  timeAgo?: string
+  title?: string
+  body?: string
 }
 
 export interface StripPhoto extends ReviewPhoto {
@@ -86,8 +92,24 @@ export const reviews: Review[] = [
     chips: reviewChips,
     variantInfo: 'Bought 42 mm, Silver, Manual',
     photos: [
-      { id: 'r1p1', src: '/assets/watch-couch.png' },
-      { id: 'r1p2', src: '/assets/watch-wrist-dxb.png' },
+      {
+        id: 'r1p1',
+        src: '/assets/watch-couch.png',
+        userName: 'John Anderson',
+        rating: 4,
+        timeAgo: '8 days ago',
+        title: 'This is simply amazing!',
+        body: 'The display is crisp and packed with useful info — time, date, world time map and alarms — yet still easy to read. Sits perfectly on a desk and the retro-tech look feels intentional rather than dated.',
+      },
+      {
+        id: 'r1p2',
+        src: '/assets/watch-wrist-dxb.png',
+        userName: 'Marcus Lee',
+        rating: 5,
+        timeAgo: '2 weeks ago',
+        title: 'Looks premium on the wrist',
+        body: 'Way more premium on the wrist than the price suggests. The brushed steel catches light nicely and the case is slimmer than photos make it look. Comfortable all day.',
+      },
     ],
     helpfulCount: 15,
     helpfulSelected: true,
@@ -105,10 +127,42 @@ export const reviews: Review[] = [
     chips: reviewChips,
     variantInfo: 'Bought 42 mm, Silver, Manual',
     photos: [
-      { id: 'r2p1', src: '/assets/watch-box-amber.png' },
-      { id: 'r2p2', src: '/assets/watch-wrist-tag.png' },
-      { id: 'r2p3', src: '/assets/watch-box-blue.png' },
-      { id: 'r2p4', src: '/assets/watch-box-hand.png' },
+      {
+        id: 'r2p1',
+        src: '/assets/watch-box-amber.png',
+        userName: 'Priya Sharma',
+        rating: 5,
+        timeAgo: '1 month ago',
+        title: 'The backlight is fantastic',
+        body: 'Ordered mostly for the amber Illuminator backlight and it did not disappoint — bright, even and genuinely useful at night. Packaging was neat and it arrived a day early.',
+      },
+      {
+        id: 'r2p2',
+        src: '/assets/watch-wrist-tag.png',
+        userName: 'David Chen',
+        rating: 4,
+        timeAgo: '3 months ago',
+        title: 'Solid build quality',
+        body: 'Feels reassuringly solid for a digital watch at this price. Tag still on in the photo — first impression out of the box was great, buttons are clicky and the strap adjusts easily.',
+      },
+      {
+        id: 'r2p3',
+        src: '/assets/watch-box-blue.png',
+        userName: 'Aisha Khan',
+        rating: 5,
+        timeAgo: '5 months ago',
+        title: 'Exactly as described',
+        body: 'Exactly what was pictured on the listing, no surprises. The blue tint on the display is subtle and classy. Would happily buy again as a gift.',
+      },
+      {
+        id: 'r2p4',
+        src: '/assets/watch-box-hand.png',
+        userName: 'Tom Wright',
+        rating: 3,
+        timeAgo: '6 months ago',
+        title: 'Good, but strap took work',
+        body: 'The watch itself is great value and looks sharp. Knocked a star because sizing the metal strap was fiddly and I had to take it to a shop to remove links.',
+      },
     ],
     helpfulCount: 14,
     helpfulSelected: false,

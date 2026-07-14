@@ -37,7 +37,15 @@ export default function ImageView() {
   const trackRef = useRef<HTMLDivElement>(null)
   const drag = useRef({ startX: 0, startLeft: 0, active: false, moved: false })
 
-  const review = slides[active].review
+  // per-image review meta (each photo is its own entry), falling back to its review
+  const metaFor = (slide: Slide) => ({
+    userName: slide.photo.userName ?? slide.review.userName,
+    rating: slide.photo.rating ?? slide.review.rating,
+    timeAgo: slide.photo.timeAgo ?? slide.review.timeAgo,
+    title: slide.photo.title ?? slide.review.title,
+    body: slide.photo.body ?? slide.review.fullBody,
+  })
+  const meta = metaFor(slides[active])
 
   // position the carousel on the tapped photo (before paint; snap disabled so
   // Chrome doesn't animate the initial jump)
@@ -181,12 +189,12 @@ export default function ImageView() {
 
   return (
     <div className={pagerOpen ? 'app-shell iv iv--gallery-open' : 'app-shell iv'}>
-      {/* Review header — content keyed by review so it animates on change */}
+      {/* Review header — content keyed by photo so it swipes in per image */}
       <header className={expanded ? 'iv-header iv-header--expanded' : 'iv-header'}>
-        <div className="iv-header__content" key={review.id}>
+        <div className="iv-header__content" key={slides[active].photo.id}>
           <div className="iv-header__user">
             <span className="iv-avatar" aria-hidden>
-              {review.userName
+              {meta.userName
                 .split(' ')
                 .map((part) => part[0])
                 .slice(0, 2)
@@ -194,28 +202,28 @@ export default function ImageView() {
             </span>
             <span className="iv-header__user-info">
               <span className="iv-header__name">
-                {review.userName}
+                {meta.userName}
                 <img src="/assets/iv-check.svg" width={16} height={16} alt="Verified" />
               </span>
-              <span className="iv-header__time">{review.timeAgo}</span>
+              <span className="iv-header__time">{meta.timeAgo}</span>
             </span>
           </div>
           <div className="iv-header__review">
-            <div className="iv-stars" aria-label={`${review.rating} out of 5 stars`}>
+            <div className="iv-stars" aria-label={`${meta.rating} out of 5 stars`}>
               {[1, 2, 3, 4, 5].map((i) => (
                 <img
                   key={i}
-                  src={i <= Math.round(review.rating) ? '/assets/iv3-star.svg' : '/assets/pdp-star-16-empty.svg'}
+                  src={i <= Math.round(meta.rating) ? '/assets/iv3-star.svg' : '/assets/pdp-star-16-empty.svg'}
                   width={20}
                   height={20}
                   alt=""
                 />
               ))}
             </div>
-            <h2 className="iv-header__title">{review.title}</h2>
+            <h2 className="iv-header__title">{meta.title}</h2>
             {expanded ? (
               <div className="iv-header__full">
-                {review.fullBody.split('\n').map((para, i) => (
+                {meta.body.split('\n').map((para, i) => (
                   <p key={i}>{para}</p>
                 ))}
                 <button className="iv-header__less" onClick={() => toggleExpanded(false)}>
@@ -224,7 +232,7 @@ export default function ImageView() {
               </div>
             ) : (
               <div className="iv-header__excerpt">
-                <p>{review.fullBody}</p>
+                <p>{meta.body}</p>
                 <button className="iv-header__more" onClick={() => toggleExpanded(true)}>
                   …more
                 </button>
@@ -253,7 +261,7 @@ export default function ImageView() {
             {slides.map((slide, i) => (
               <div key={slide.photo.id} className="iv-slide">
                 <img
-                  className="iv-card__img"
+                  className={i === active ? 'iv-card__img iv-card__img--active' : 'iv-card__img'}
                   src={slide.photo.src}
                   alt={`Review photo ${i + 1}`}
                   draggable={false}
@@ -272,22 +280,25 @@ export default function ImageView() {
               <div className="iv-gallery" style={{ viewTransitionName: 'photo-gallery' }} role="dialog" aria-label="All review photos">
                 {/* tiles repeated 4x to exercise scrolling until there are more real photos */}
                 {Array.from({ length: 4 }).flatMap((_, rep) =>
-                  slides.map((slide, i) => (
-                    <button
-                      key={`${rep}-${slide.photo.id}`}
-                      className="iv-gallery__tile"
-                      onClick={() => selectFromGallery(i)}
-                      aria-label={`Open ${slide.review.userName}'s photo, rated ${slide.review.rating} stars`}
-                    >
-                      <img src={slide.photo.src} alt="" loading="lazy" />
-                      <span className="iv-gallery__overlay">
-                        <span className="iv-gallery__chip">
-                          {slide.review.rating}
-                          <img src="/assets/iv-star-white.svg" width={10} height={10} alt="" />
+                  slides.map((slide, i) => {
+                    const m = metaFor(slide)
+                    return (
+                      <button
+                        key={`${rep}-${slide.photo.id}`}
+                        className="iv-gallery__tile"
+                        onClick={() => selectFromGallery(i)}
+                        aria-label={`Open ${m.userName}'s photo, rated ${m.rating} stars`}
+                      >
+                        <img src={slide.photo.src} alt="" loading="lazy" />
+                        <span className="iv-gallery__overlay">
+                          <span className="iv-gallery__chip">
+                            {m.rating}
+                            <img src="/assets/iv-star-white.svg" width={10} height={10} alt="" />
+                          </span>
                         </span>
-                      </span>
-                    </button>
-                  )),
+                      </button>
+                    )
+                  }),
                 )}
               </div>
             </>

@@ -24,7 +24,9 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  animation: iv-text-in 0.25s ease-out both;
+  /* the header swipes in alongside the card: it enters tilted (-2deg) and
+     nudged sideways, then settles straight */
+  animation: iv-section-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 /* reviewer identity row: initials avatar + name / time */
@@ -137,6 +139,17 @@
   }
 }
 
+@keyframes iv-section-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px) rotate(-2deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
 /* reviewer line */
 .iv-header__user {
   display: flex;
@@ -244,6 +257,16 @@
   border-radius: 32px;
   user-select: none;
   -webkit-user-drag: none;
+  /* non-active cards rest at a slight tilt; the active card straightens.
+     As you swipe, the exiting card rotates 0 -> -2deg and the entering
+     card rotates -2 -> 0deg. */
+  transform: rotate(-2deg);
+  transform-origin: center;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.iv-card__img--active {
+  transform: rotate(0deg);
 }
 
 /* ---------- action bar ---------- */
