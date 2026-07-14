@@ -27,32 +27,38 @@
   animation: iv-text-in 0.25s ease-out both;
 }
 
-.iv-header__meta {
+/* reviewer identity row: initials avatar + name / time */
+.iv-avatar {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.iv-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  color: #ffffff;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #edeefd;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.1px;
-  line-height: 18px;
-  flex-shrink: 0;
+  color: var(--bg-500);
+  text-transform: uppercase;
 }
 
-.iv-pill--positive {
-  background: #0f8857;
+.iv-header__user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.iv-pill--negative {
-  background: #e5641a;
+.iv-header__review {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.iv-stars {
+  display: flex;
+  align-items: center;
 }
 
 .iv-header__title {
@@ -136,7 +142,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
+  margin-bottom: 10px;
 }
 
 .iv-header__name {
@@ -272,11 +278,14 @@
   position: relative;
 }
 
-.iv-actionbar__left {
+.iv-actionbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   transition: opacity 0.2s ease;
 }
 
-.iv-actionbar--pager-open .iv-actionbar__left {
+.iv-actionbar--pager-open .iv-actionbar__actions {
   opacity: 0;
   pointer-events: none;
 }
@@ -303,7 +312,7 @@
   gap: 8px;
   padding: 8px;
   animation: iv-pager-expand 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  transform-origin: right center;
+  transform-origin: left center;
 }
 
 @keyframes iv-pager-expand {
@@ -447,10 +456,10 @@
   width: 36px;
   height: 48px;
   flex-shrink: 0;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 6px;
-  border: 0.75px solid var(--bg-200);
   background: var(--bg-100);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
 }
 
 .iv-quickview__info {
@@ -502,9 +511,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
   height: 48px;
+  padding: 14px 16px;
   flex-shrink: 0;
   border-radius: 10px;
   background: #0f7eff;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
 }

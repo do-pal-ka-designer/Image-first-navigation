@@ -179,36 +179,52 @@ export default function ImageView() {
       {/* Review header — content keyed by review so it animates on change */}
       <header className={expanded ? 'iv-header iv-header--expanded' : 'iv-header'}>
         <div className="iv-header__content" key={review.id}>
-          <div className="iv-header__meta">
-            <span className={review.rating >= 3 ? 'iv-pill iv-pill--positive' : 'iv-pill iv-pill--negative'}>
-              {review.rating}
-              <img src="/assets/iv-star-white.svg" width={12} height={12} alt="" />
-            </span>
-            <h2 className="iv-header__title">{review.title}</h2>
-          </div>
-          {expanded ? (
-            <div className="iv-header__full">
-              {review.fullBody.split('\n').map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-              <button className="iv-header__less" onClick={() => toggleExpanded(false)}>
-                Show less
-              </button>
-            </div>
-          ) : (
-            <div className="iv-header__excerpt">
-              <p>{review.fullBody}</p>
-              <button className="iv-header__more" onClick={() => toggleExpanded(true)}>
-                …more
-              </button>
-            </div>
-          )}
           <div className="iv-header__user">
-            <span className="iv-header__name">
-              {review.userName}
-              <img src="/assets/iv-check.svg" width={16} height={16} alt="Verified" />
+            <span className="iv-avatar" aria-hidden>
+              {review.userName
+                .split(' ')
+                .map((part) => part[0])
+                .slice(0, 2)
+                .join('')}
             </span>
-            <span className="iv-header__time">{review.timeAgo}</span>
+            <span className="iv-header__user-info">
+              <span className="iv-header__name">
+                {review.userName}
+                <img src="/assets/iv-check.svg" width={16} height={16} alt="Verified" />
+              </span>
+              <span className="iv-header__time">{review.timeAgo}</span>
+            </span>
+          </div>
+          <div className="iv-header__review">
+            <div className="iv-stars" aria-label={`${review.rating} out of 5 stars`}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <img
+                  key={i}
+                  src={i <= Math.round(review.rating) ? '/assets/iv3-star.svg' : '/assets/pdp-star-16-empty.svg'}
+                  width={20}
+                  height={20}
+                  alt=""
+                />
+              ))}
+            </div>
+            <h2 className="iv-header__title">{review.title}</h2>
+            {expanded ? (
+              <div className="iv-header__full">
+                {review.fullBody.split('\n').map((para, i) => (
+                  <p key={i}>{para}</p>
+                ))}
+                <button className="iv-header__less" onClick={() => toggleExpanded(false)}>
+                  Show less
+                </button>
+              </div>
+            ) : (
+              <div className="iv-header__excerpt">
+                <p>{review.fullBody}</p>
+                <button className="iv-header__more" onClick={() => toggleExpanded(true)}>
+                  …more
+                </button>
+              </div>
+            )}
           </div>
         </div>
         <button className="iv-close" aria-label="Close" onClick={close}>
@@ -243,19 +259,8 @@ export default function ImageView() {
           </div>
         </div>
 
-        {/* Action bar: like / share / zoom + photo pager */}
+        {/* Action bar: photo pager (left) + like / share (right) */}
         <div className={pagerOpen ? 'iv-actionbar iv-actionbar--pager-open' : 'iv-actionbar'}>
-          <div className="iv-actionbar__left">
-            <button className="iv-action" aria-label="Like">
-              <img src="/assets/iv2-like.svg" width={24} height={24} alt="" />
-            </button>
-            <button className="iv-action" aria-label="Share" onClick={share}>
-              <img src="/assets/iv2-share.svg" width={24} height={24} alt="" />
-            </button>
-            <button className="iv-action" aria-label="Zoom">
-              <img src="/assets/iv2-search.svg" width={24} height={24} alt="" />
-            </button>
-          </div>
           {pagerOpen ? (
             <>
               <button className="iv-pager-backdrop" aria-label="Close photo strip" onClick={() => setPagerOpen(false)} />
@@ -305,6 +310,14 @@ export default function ImageView() {
               </span>
             </button>
           )}
+          <div className="iv-actionbar__actions">
+            <button className="iv-action" aria-label="Like">
+              <img src="/assets/iv2-like.svg" width={24} height={24} alt="" />
+            </button>
+            <button className="iv-action" aria-label="Share" onClick={share}>
+              <img src="/assets/iv2-share.svg" width={24} height={24} alt="" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -318,9 +331,7 @@ export default function ImageView() {
               <b>Đ{product.price}</b> <s>{product.oldPrice}</s> <span>47%</span>
             </p>
           </div>
-          <button className="iv-quickview__atc" aria-label="Add to cart">
-            <img src="/assets/iv-cart.svg" width={20} height={20} alt="" />
-          </button>
+          <button className="iv-quickview__atc">Add to cart</button>
         </div>
       </footer>
     </div>
