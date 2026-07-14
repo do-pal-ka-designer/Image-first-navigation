@@ -242,7 +242,7 @@ export default function ImageView() {
               <button className="iv-pager-backdrop" aria-label="Close photo strip" onClick={() => setPagerOpen(false)} />
               <div className="iv-pager iv-pager--open">
                 <button className="iv-pager__close" aria-label="Collapse photos" onClick={() => setPagerOpen(false)}>
-                  <img src="/assets/iv-cross.svg" width={16} height={16} alt="" />
+                  <img src="/assets/iv-cross.svg" width={20} height={20} alt="" />
                 </button>
                 <div className="h-scroll iv-pager__strip" ref={stripRef}>
                   {slides.map((slide, i) => (
