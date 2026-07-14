@@ -333,7 +333,7 @@
   grid-template-columns: repeat(3, 1fr);
   grid-auto-rows: 116px;
   gap: 4px;
-  padding: 4px;
+  padding: 0;
   background: var(--surface);
   border: 1px solid var(--bg-300);
   border-radius: 40px;
