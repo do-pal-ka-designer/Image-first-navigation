@@ -11,7 +11,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 12px 64px 0 16px;
+  padding: 12px 0 0;
   flex-shrink: 0;
 }
 
@@ -19,14 +19,24 @@
   overflow-y: auto;
 }
 
-/* header content fades/slides in when the active review changes mid-swipe */
-.iv-header__content {
+/* the header is a horizontal track that translates 1:1 with the carousel
+   scroll, so the review text physically swipes with the cards */
+.iv-header__viewport {
+  overflow-x: clip;
+}
+
+.iv-header__track {
+  display: flex;
+  will-change: transform;
+}
+
+.iv-header__cell {
+  flex: 0 0 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  /* the header swipes in alongside the card: it enters tilted (-2deg) and
-     nudged sideways, then settles straight */
-  animation: iv-section-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  padding: 0 64px 0 16px;
 }
 
 /* reviewer identity row: initials avatar + name / time */
@@ -139,16 +149,6 @@
   }
 }
 
-@keyframes iv-section-in {
-  from {
-    opacity: 0;
-    transform: translateX(16px) rotate(-2deg);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) rotate(0deg);
-  }
-}
 
 /* reviewer line */
 .iv-header__user {
@@ -257,16 +257,6 @@
   border-radius: 32px;
   user-select: none;
   -webkit-user-drag: none;
-  /* non-active cards rest at a slight tilt; the active card straightens.
-     As you swipe, the exiting card rotates 0 -> -2deg and the entering
-     card rotates -2 -> 0deg. */
-  transform: rotate(-2deg);
-  transform-origin: center;
-  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.iv-card__img--active {
-  transform: rotate(0deg);
 }
 
 /* ---------- action bar ---------- */
@@ -347,7 +337,7 @@
 .iv-header,
 .iv-carousel-wrap,
 .iv-quickview {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.35s ease;
 }
 
 .iv--gallery-open .iv-header,
