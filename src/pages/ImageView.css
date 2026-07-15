@@ -256,8 +256,10 @@
    left), middle photos centre (both neighbours peek). Single-photo
    reviews stay full width, so review boundaries never peek. */
 .iv-slide--grouped {
-  flex: 0 0 calc(100% - 32px);
-  padding: 16px 8px;
+  /* narrower slide → more of the neighbouring card peeks in; 4px side
+     padding tightens the gap between photos of the same review */
+  flex: 0 0 calc(100% - 56px);
+  padding: 16px 4px;
 }
 
 .iv-slide--snap-start {

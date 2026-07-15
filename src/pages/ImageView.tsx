@@ -346,10 +346,14 @@ export default function ImageView() {
               // peeks left); single-photo reviews stay full width, no peek.
               const grouped = slide.review.photos.length > 1
               const align = snapAlignFor(slide)
+              // a peeking card hugs toward the active one so more of it shows
+              // and the gap between same-review photos stays tight
+              const hug = grouped ? (i < active ? 'flex-end' : i > active ? 'flex-start' : 'center') : undefined
               return (
                 <div
                   key={slide.photo.id}
                   className={grouped ? `iv-slide iv-slide--grouped iv-slide--snap-${align}` : 'iv-slide'}
+                  style={hug ? { justifyContent: hug } : undefined}
                 >
                   <div className="iv-card">
                     <img
