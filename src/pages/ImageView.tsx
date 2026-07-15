@@ -302,28 +302,43 @@ export default function ImageView() {
             onPointerCancel={endDrag}
             onClickCapture={suppressDragClick}
           >
-            {slides.map((slide, i) => (
-              <div key={slide.photo.id} className="iv-slide">
-                <div className="iv-card">
-                  <img
-                    className="iv-card__img"
-                    src={slide.photo.src}
-                    alt={`Review photo ${i + 1}`}
-                    draggable={false}
-                    style={i === active && !expanded ? { viewTransitionName: MORPH_NAME } : undefined}
-                  />
-                  {slide.review.photos.length > 1 && (
-                    <span className="iv-card__top">
-                      <span className="iv-card__user">
-                        {slide.review.userName}
-                        <img src="/assets/iv-check.svg" width={16} height={16} alt="Verified" />
+            {slides.map((slide, i) => {
+              // peek only within the same reviewer's photos: non-last photos
+              // preview the NEXT image at the right edge; the last photo
+              // previews the second-last at the left. Other reviewers never peek.
+              const groupPhotos = slide.review.photos
+              const local = groupPhotos.indexOf(slide.photo)
+              const peekSide = groupPhotos.length > 1 ? (local < groupPhotos.length - 1 ? 'right' : 'left') : null
+              const peekSrc =
+                peekSide === 'right' ? groupPhotos[local + 1].src : peekSide === 'left' ? groupPhotos[local - 1].src : null
+              return (
+                <div key={slide.photo.id} className={peekSide ? `iv-slide iv-slide--peek-${peekSide}` : 'iv-slide'}>
+                  <div className="iv-card">
+                    <img
+                      className="iv-card__img"
+                      src={slide.photo.src}
+                      alt={`Review photo ${i + 1}`}
+                      draggable={false}
+                      style={i === active && !expanded ? { viewTransitionName: MORPH_NAME } : undefined}
+                    />
+                    {groupPhotos.length > 1 && (
+                      <span className="iv-card__top">
+                        <span className="iv-card__user">
+                          {slide.review.userName}
+                          <img src="/assets/iv-check.svg" width={16} height={16} alt="Verified" />
+                        </span>
+                        <span className="iv-card__variant">{slide.review.variantInfo}</span>
                       </span>
-                      <span className="iv-card__variant">{slide.review.variantInfo}</span>
+                    )}
+                  </div>
+                  {peekSide && peekSrc && (
+                    <span className={`iv-peek iv-peek--${peekSide}`} aria-hidden>
+                      <img src={peekSrc} alt="" />
                     </span>
                   )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -384,6 +399,17 @@ export default function ImageView() {
                 )}
               </span>
             </button>
+          )}
+          {/* position dots within the active reviewer's photos */}
+          {!pagerOpen && slides[active].review.photos.length > 1 && (
+            <span className="iv-dots" aria-hidden>
+              {slides[active].review.photos.map((photo) => (
+                <span
+                  key={photo.id}
+                  className={photo === slides[active].photo ? 'iv-dot iv-dot--active' : 'iv-dot'}
+                />
+              ))}
+            </span>
           )}
           <div className="iv-actionbar__actions">
             <button className="iv-action" aria-label="Like">
