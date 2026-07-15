@@ -55,6 +55,34 @@ export default function ImageView() {
   // into a different review
   const activeReviewIndex = reviews.indexOf(slides[active].review)
 
+  /* peeking is done with the REAL neighbouring cards: photos of a multi-photo
+     review render as narrower slides whose snap alignment leans them toward
+     the viewport edge, so the adjacent card itself pokes into view */
+  const snapAlignFor = (slide: Slide) => {
+    const photos = slide.review.photos
+    if (photos.length <= 1) return 'center'
+    const local = photos.indexOf(slide.photo)
+    if (local === 0) return 'start'
+    if (local === photos.length - 1) return 'end'
+    return 'center'
+  }
+
+  // resting scrollLeft for slide i, honouring its width and snap alignment
+  const targetLeft = (el: HTMLElement, i: number) => {
+    const s = el.children[i] as HTMLElement | undefined
+    if (!s) return 0
+    const align = getComputedStyle(s).scrollSnapAlign
+    if (align.includes('end')) return s.offsetLeft - (el.clientWidth - s.offsetWidth)
+    if (align.includes('center')) return s.offsetLeft - (el.clientWidth - s.offsetWidth) / 2
+    return s.offsetLeft
+  }
+
+  const nearestIndex = (el: HTMLElement) =>
+    slides.reduce(
+      (best, _, i) => (Math.abs(targetLeft(el, i) - el.scrollLeft) < Math.abs(targetLeft(el, best) - el.scrollLeft) ? i : best),
+      0,
+    )
+
   // position the carousel on the tapped photo (before paint; snap disabled so
   // Chrome doesn't animate the initial jump)
   useLayoutEffect(() => {
@@ -62,7 +90,7 @@ export default function ImageView() {
     if (!el) return
     el.style.scrollSnapType = 'none'
     const position = () => {
-      el.scrollLeft = active * el.clientWidth
+      el.scrollLeft = targetLeft(el, active)
     }
     position()
     requestAnimationFrame(() => {
@@ -106,8 +134,8 @@ export default function ImageView() {
     const el = trackRef.current
     if (!el) return
     if (drag.current.active || expanded || pagerOpen) return
-    const idx = Math.round(el.scrollLeft / el.clientWidth)
-    if (idx !== active && idx >= 0 && idx < slides.length) setActive(idx)
+    const idx = nearestIndex(el)
+    if (idx !== active) setActive(idx)
   }
 
   // mouse drag-to-swipe (touch swiping is native via scroll-snap)
@@ -135,11 +163,19 @@ export default function ImageView() {
     el.releasePointerCapture(e.pointerId)
     // snap to the nearest card, biased by drag direction
     const dx = e.clientX - drag.current.startX
-    const raw = el.scrollLeft / el.clientWidth
-    const target = Math.abs(dx) > 40 ? (dx < 0 ? Math.ceil(raw) : Math.floor(raw)) : Math.round(raw)
-    const idx = Math.max(0, Math.min(slides.length - 1, target))
+    let idx = nearestIndex(el)
+    if (Math.abs(dx) > 40) {
+      const startIdx = slides.reduce(
+        (best, _, i) =>
+          Math.abs(targetLeft(el, i) - drag.current.startLeft) < Math.abs(targetLeft(el, best) - drag.current.startLeft)
+            ? i
+            : best,
+        0,
+      )
+      idx = Math.max(0, Math.min(slides.length - 1, startIdx + (dx < 0 ? 1 : -1)))
+    }
     setActive(idx)
-    el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' })
+    el.scrollTo({ left: targetLeft(el, idx), behavior: 'smooth' })
     window.setTimeout(() => {
       el.style.scrollSnapType = ''
     }, 350)
@@ -172,12 +208,12 @@ export default function ImageView() {
       flushSync(() => {
         setPagerOpen(false)
         setActive(i)
-        if (el) el.scrollLeft = i * el.clientWidth
+        if (el) el.scrollLeft = targetLeft(el, i)
       }),
     )
     window.setTimeout(() => {
       if (el) {
-        el.scrollLeft = i * el.clientWidth
+        el.scrollLeft = targetLeft(el, i)
         el.style.scrollSnapType = ''
       }
     }, 500)
@@ -303,16 +339,18 @@ export default function ImageView() {
             onClickCapture={suppressDragClick}
           >
             {slides.map((slide, i) => {
-              // peek only within the same reviewer's photos: non-last photos
-              // preview the NEXT image at the right edge; the last photo
-              // previews the second-last at the left. Other reviewers never peek.
-              const groupPhotos = slide.review.photos
-              const local = groupPhotos.indexOf(slide.photo)
-              const peekSide = groupPhotos.length > 1 ? (local < groupPhotos.length - 1 ? 'right' : 'left') : null
-              const peekSrc =
-                peekSide === 'right' ? groupPhotos[local + 1].src : peekSide === 'left' ? groupPhotos[local - 1].src : null
+              // photos of a multi-photo review are narrower slides whose snap
+              // alignment leans them to the edge, so the REAL neighbouring
+              // card peeks into view — no extra elements. First photo leans
+              // left (next card peeks right), last leans right (previous card
+              // peeks left); single-photo reviews stay full width, no peek.
+              const grouped = slide.review.photos.length > 1
+              const align = snapAlignFor(slide)
               return (
-                <div key={slide.photo.id} className={peekSide ? `iv-slide iv-slide--peek-${peekSide}` : 'iv-slide'}>
+                <div
+                  key={slide.photo.id}
+                  className={grouped ? `iv-slide iv-slide--grouped iv-slide--snap-${align}` : 'iv-slide'}
+                >
                   <div className="iv-card">
                     <img
                       className="iv-card__img"
@@ -321,7 +359,7 @@ export default function ImageView() {
                       draggable={false}
                       style={i === active && !expanded ? { viewTransitionName: MORPH_NAME } : undefined}
                     />
-                    {groupPhotos.length > 1 && (
+                    {grouped && (
                       <span className="iv-card__top">
                         <span className="iv-card__user">
                           {slide.review.userName}
@@ -331,11 +369,6 @@ export default function ImageView() {
                       </span>
                     )}
                   </div>
-                  {peekSide && peekSrc && (
-                    <span className={`iv-peek iv-peek--${peekSide}`} aria-hidden>
-                      <img src={peekSrc} alt="" />
-                    </span>
-                  )}
                 </div>
               )
             })}

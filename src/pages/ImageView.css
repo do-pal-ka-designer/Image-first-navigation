@@ -249,44 +249,27 @@
 
 /* clean image card sized to the photo's natural aspect ratio:
    landscape photos render as wide short cards, portraits fill the height */
-/* peek: within a multi-photo review, a sliver of the neighbouring photo
-   shows at the screen edge — next photo on the right for all but the last,
-   second-last on the left when on the last. Review boundaries never peek. */
-.iv-slide {
-  position: relative;
+/* peek with the REAL cards: photos of a multi-photo review are narrower
+   slides, so the adjacent card itself pokes into the viewport. The snap
+   alignment decides which side peeks — first photo snaps to the start
+   (next card peeks right), last snaps to the end (previous card peeks
+   left), middle photos centre (both neighbours peek). Single-photo
+   reviews stay full width, so review boundaries never peek. */
+.iv-slide--grouped {
+  flex: 0 0 calc(100% - 32px);
+  padding: 16px 8px;
 }
 
-.iv-slide--peek-right {
-  padding-right: 40px;
+.iv-slide--snap-start {
+  scroll-snap-align: start;
 }
 
-.iv-slide--peek-left {
-  padding-left: 40px;
+.iv-slide--snap-center {
+  scroll-snap-align: center;
 }
 
-.iv-peek {
-  position: absolute;
-  top: 16px;
-  bottom: 16px;
-  width: 24px;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.iv-peek img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.iv-peek--right {
-  right: 0;
-  border-radius: 24px 0 0 24px;
-}
-
-.iv-peek--left {
-  left: 0;
-  border-radius: 0 24px 24px 0;
+.iv-slide--snap-end {
+  scroll-snap-align: end;
 }
 
 /* grid-stacks the image and its overlay so the overlay hugs the image's
