@@ -357,6 +357,12 @@ export default function ImageView() {
                       src={slide.photo.src}
                       alt={`Review photo ${i + 1}`}
                       draggable={false}
+                      onLoad={(e) => {
+                        // size the card to the photo's aspect so the card box IS
+                        // the image box — overlay always hugs it, no letterbox gap
+                        const card = e.currentTarget.parentElement
+                        if (card) card.style.aspectRatio = `${e.currentTarget.naturalWidth} / ${e.currentTarget.naturalHeight}`
+                      }}
                       style={i === active && !expanded ? { viewTransitionName: MORPH_NAME } : undefined}
                     />
                     {grouped && (

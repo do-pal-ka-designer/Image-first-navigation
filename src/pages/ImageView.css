@@ -272,29 +272,22 @@
   scroll-snap-align: end;
 }
 
-/* grid-stacks the image and its overlay so the overlay hugs the image's
-   rendered bounds regardless of the photo's aspect ratio */
+/* the card is sized to each photo's aspect ratio (set on image load), so the
+   card box IS the rendered image box — capped by the available space. This
+   keeps the overlay hugging the image with no letterbox gap, for both
+   portrait and landscape, and never overflows the stage. */
 .iv-card {
-  display: grid;
-  /* bound the single grid track to the card's own box, otherwise a portrait
-     image auto-sizes the row to its natural height and overflows upward into
-     the header (max-height:100% would resolve against the blown-up track) */
-  grid-template-rows: minmax(0, 1fr);
-  grid-template-columns: minmax(0, 1fr);
-  place-items: center;
   position: relative;
-  height: 100%;
+  aspect-ratio: 3 / 4;
   max-width: 100%;
+  max-height: 100%;
   min-height: 0;
 }
 
 .iv-card__img {
-  grid-area: 1 / 1;
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
   border-radius: 32px;
   user-select: none;
@@ -305,10 +298,10 @@
    z-index lifts it above the active image, whose view-transition-name
    forces a stacking context that would otherwise paint over the overlay */
 .iv-card__top {
-  grid-area: 1 / 1;
-  align-self: start;
-  justify-self: stretch;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
