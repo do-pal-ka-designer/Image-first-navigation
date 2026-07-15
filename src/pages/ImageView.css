@@ -276,9 +276,12 @@
    rendered bounds regardless of the photo's aspect ratio */
 .iv-card {
   display: grid;
+  /* bound the single grid track to the card's own box, otherwise a portrait
+     image auto-sizes the row to its natural height and overflows upward into
+     the header (max-height:100% would resolve against the blown-up track) */
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
-  justify-content: center;
-  align-content: center;
   position: relative;
   height: 100%;
   max-width: 100%;
