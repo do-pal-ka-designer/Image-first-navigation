@@ -19,15 +19,17 @@
   overflow-y: auto;
 }
 
-/* the header is a horizontal track that translates 1:1 with the carousel
-   scroll, so the review text physically swipes with the cards */
+/* the header holds one cell per review: pinned while swiping through a
+   review's photos, sliding across only when the stream enters a new review */
 .iv-header__viewport {
   overflow-x: clip;
 }
 
 .iv-header__track {
   display: flex;
+  width: 100%;
   will-change: transform;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .iv-header__cell {
@@ -247,7 +249,21 @@
 
 /* clean image card sized to the photo's natural aspect ratio:
    landscape photos render as wide short cards, portraits fill the height */
+/* grid-stacks the image and its overlay so the overlay hugs the image's
+   rendered bounds regardless of the photo's aspect ratio */
+.iv-card {
+  display: grid;
+  place-items: center;
+  justify-content: center;
+  align-content: center;
+  position: relative;
+  height: 100%;
+  max-width: 100%;
+  min-height: 0;
+}
+
 .iv-card__img {
+  grid-area: 1 / 1;
   max-width: 100%;
   max-height: 100%;
   width: auto;
@@ -257,6 +273,42 @@
   border-radius: 32px;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+/* multi-photo reviews carry the reviewer on the image, per the design.
+   z-index lifts it above the active image, whose view-transition-name
+   forces a stacking context that would otherwise paint over the overlay */
+.iv-card__top {
+  grid-area: 1 / 1;
+  align-self: start;
+  justify-self: stretch;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px;
+  border-radius: 32px 32px 0 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+
+.iv-card__user {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  line-height: 20px;
+  color: #ffffff;
+}
+
+.iv-card__variant {
+  font-size: 14px;
+  letter-spacing: -0.1px;
+  line-height: 20px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* ---------- action bar ---------- */

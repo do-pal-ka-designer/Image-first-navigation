@@ -71,8 +71,9 @@ export default function PRP() {
             </button>
           </div>
           <div className="prp-all__list">
-            <ReviewCard review={reviews[0]} source="prp" compactHeader />
-            <ReviewCard review={reviews[1]} source="prp" />
+            {reviews.map((review, i) => (
+              <ReviewCard key={review.id} review={review} source="prp" compactHeader={i === 0} />
+            ))}
           </div>
         </section>
       </main>

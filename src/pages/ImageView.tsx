@@ -39,10 +39,9 @@ export default function ImageView() {
   // frozen into the pill<->gallery view-transition snapshot (which made it pop)
   const [dimmed, setDimmed] = useState(false)
   const trackRef = useRef<HTMLDivElement>(null)
-  const headerTrackRef = useRef<HTMLDivElement>(null)
   const drag = useRef({ startX: 0, startLeft: 0, active: false, moved: false })
 
-  // per-image review meta (each photo is its own entry), falling back to its review
+  // per-image review meta (each photo may override, falling back to its review)
   const metaFor = (slide: Slide) => ({
     userName: slide.photo.userName ?? slide.review.userName,
     rating: slide.photo.rating ?? slide.review.rating,
@@ -51,13 +50,10 @@ export default function ImageView() {
     body: slide.photo.body ?? slide.review.fullBody,
   })
 
-  // the header is a horizontal track that follows the carousel scroll 1:1,
-  // so the review text physically swipes along with the cards
-  const syncHeader = () => {
-    const el = trackRef.current
-    const header = headerTrackRef.current
-    if (el && header) header.style.transform = `translateX(${-el.scrollLeft}px)`
-  }
+  // the header is grouped per REVIEW: while swiping between photos of the
+  // same review it stays pinned, and it slides only when the stream crosses
+  // into a different review
+  const activeReviewIndex = reviews.indexOf(slides[active].review)
 
   // position the carousel on the tapped photo (before paint; snap disabled so
   // Chrome doesn't animate the initial jump)
@@ -67,7 +63,6 @@ export default function ImageView() {
     el.style.scrollSnapType = 'none'
     const position = () => {
       el.scrollLeft = active * el.clientWidth
-      syncHeader()
     }
     position()
     requestAnimationFrame(() => {
@@ -110,7 +105,6 @@ export default function ImageView() {
   const onScroll = () => {
     const el = trackRef.current
     if (!el) return
-    syncHeader()
     if (drag.current.active || expanded || pagerOpen) return
     const idx = Math.round(el.scrollLeft / el.clientWidth)
     if (idx !== active && idx >= 0 && idx < slides.length) setActive(idx)
@@ -232,64 +226,62 @@ export default function ImageView() {
 
   return (
     <div className={dimmed ? 'app-shell iv iv--gallery-open' : 'app-shell iv'}>
-      {/* Review header — a track of per-photo cells that slides 1:1 with the carousel */}
+      {/* Review header — one cell per REVIEW: pinned while swiping through a
+          review's own photos, sliding only when the stream crosses reviews */}
       <header className={expanded ? 'iv-header iv-header--expanded' : 'iv-header'}>
         <div className="iv-header__viewport">
-          <div className="iv-header__track" ref={headerTrackRef}>
-            {slides.map((slide, i) => {
-              const m = metaFor(slide)
-              return (
-                <div className="iv-header__cell" key={slide.photo.id}>
-                  <div className="iv-header__user">
-                    <span className="iv-avatar" aria-hidden>
-                      {m.userName
-                        .split(' ')
-                        .map((part) => part[0])
-                        .slice(0, 2)
-                        .join('')}
+          <div className="iv-header__track" style={{ transform: `translateX(${-activeReviewIndex * 100}%)` }}>
+            {reviews.map((r, ri) => (
+              <div className="iv-header__cell" key={r.id}>
+                <div className="iv-header__user">
+                  <span className="iv-avatar" aria-hidden>
+                    {r.userName
+                      .split(' ')
+                      .map((part) => part[0])
+                      .slice(0, 2)
+                      .join('')}
+                  </span>
+                  <span className="iv-header__user-info">
+                    <span className="iv-header__name">
+                      {r.userName}
+                      <img src="/assets/iv-check.svg" width={16} height={16} alt="Verified" />
                     </span>
-                    <span className="iv-header__user-info">
-                      <span className="iv-header__name">
-                        {m.userName}
-                        <img src="/assets/iv-check.svg" width={16} height={16} alt="Verified" />
-                      </span>
-                      <span className="iv-header__time">{m.timeAgo}</span>
-                    </span>
-                  </div>
-                  <div className="iv-header__review">
-                    <div className="iv-stars" aria-label={`${m.rating} out of 5 stars`}>
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <img
-                          key={s}
-                          src={s <= Math.round(m.rating) ? '/assets/iv3-star.svg' : '/assets/pdp-star-16-empty.svg'}
-                          width={20}
-                          height={20}
-                          alt=""
-                        />
-                      ))}
-                    </div>
-                    <h2 className="iv-header__title">{m.title}</h2>
-                    {expanded && i === active ? (
-                      <div className="iv-header__full">
-                        {m.body.split('\n').map((para, p) => (
-                          <p key={p}>{para}</p>
-                        ))}
-                        <button className="iv-header__less" onClick={() => toggleExpanded(false)}>
-                          Show less
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="iv-header__excerpt">
-                        <p>{m.body}</p>
-                        <button className="iv-header__more" onClick={() => toggleExpanded(true)}>
-                          …more
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                    <span className="iv-header__time">{r.timeAgo}</span>
+                  </span>
                 </div>
-              )
-            })}
+                <div className="iv-header__review">
+                  <div className="iv-stars" aria-label={`${r.rating} out of 5 stars`}>
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <img
+                        key={s}
+                        src={s <= Math.round(r.rating) ? '/assets/iv3-star.svg' : '/assets/pdp-star-16-empty.svg'}
+                        width={20}
+                        height={20}
+                        alt=""
+                      />
+                    ))}
+                  </div>
+                  <h2 className="iv-header__title">{r.title}</h2>
+                  {expanded && ri === activeReviewIndex ? (
+                    <div className="iv-header__full">
+                      {r.fullBody.split('\n').map((para, p) => (
+                        <p key={p}>{para}</p>
+                      ))}
+                      <button className="iv-header__less" onClick={() => toggleExpanded(false)}>
+                        Show less
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="iv-header__excerpt">
+                      <p>{r.fullBody}</p>
+                      <button className="iv-header__more" onClick={() => toggleExpanded(true)}>
+                        …more
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
         <button className="iv-close" aria-label="Close" onClick={close}>
@@ -312,13 +304,24 @@ export default function ImageView() {
           >
             {slides.map((slide, i) => (
               <div key={slide.photo.id} className="iv-slide">
-                <img
-                  className="iv-card__img"
-                  src={slide.photo.src}
-                  alt={`Review photo ${i + 1}`}
-                  draggable={false}
-                  style={i === active && !expanded ? { viewTransitionName: MORPH_NAME } : undefined}
-                />
+                <div className="iv-card">
+                  <img
+                    className="iv-card__img"
+                    src={slide.photo.src}
+                    alt={`Review photo ${i + 1}`}
+                    draggable={false}
+                    style={i === active && !expanded ? { viewTransitionName: MORPH_NAME } : undefined}
+                  />
+                  {slide.review.photos.length > 1 && (
+                    <span className="iv-card__top">
+                      <span className="iv-card__user">
+                        {slide.review.userName}
+                        <img src="/assets/iv-check.svg" width={16} height={16} alt="Verified" />
+                      </span>
+                      <span className="iv-card__variant">{slide.review.variantInfo}</span>
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
