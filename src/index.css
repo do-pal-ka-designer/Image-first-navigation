@@ -134,16 +134,17 @@ img {
 }
 
 ::view-transition-old(root) {
-  animation: vt-fade-out 0.2s ease-out both;
+  animation: vt-fade-out 0.22s ease-out both;
 }
 
+/* shorter stagger so the card's info is there almost as the photo lands */
 ::view-transition-new(root) {
-  animation: vt-fade-in 0.3s ease-out 0.25s both;
+  animation: vt-fade-in 0.32s ease-out 0.12s both;
 }
 
 ::view-transition-group(review-photo) {
-  animation-duration: 0.5s;
-  animation-timing-function: cubic-bezier(0.22, 0.9, 0.26, 1);
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* both snapshots fill the morphing box without distortion; the UA's
@@ -164,8 +165,8 @@ img {
 
 /* pager pill <-> gallery modal morph */
 ::view-transition-group(photo-gallery) {
-  animation-duration: 0.4s;
-  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 ::view-transition-old(photo-gallery),

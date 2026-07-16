@@ -57,6 +57,16 @@ export default function ImageView() {
     return () => cancelAnimationFrame(id)
   }, [pagerOpen])
 
+  // pre-decode every photo up front so cards are fully painted before the
+  // user swipes to them — no late image pop-in on navigation
+  useEffect(() => {
+    slides.forEach(({ photo }) => {
+      const img = new Image()
+      img.src = photo.src
+      img.decode?.().catch(() => {})
+    })
+  }, [])
+
   /* inner-first navigation: step through the review's photos, then reviews */
   const step = (dir: 1 | -1) => {
     const next = pi + dir
@@ -73,11 +83,11 @@ export default function ImageView() {
   const restingTransforms = () => {
     if (stripRef.current) {
       stripRef.current.style.transition = ''
-      stripRef.current.style.transform = `translateX(${-pi * 100}%)`
+      stripRef.current.style.transform = `translate3d(${-pi * 100}%, 0, 0)`
     }
     if (outerRef.current) {
       outerRef.current.style.transition = ''
-      outerRef.current.style.transform = `translateX(${-reviewIdx * 100}%)`
+      outerRef.current.style.transform = `translate3d(${-reviewIdx * 100}%, 0, 0)`
     }
   }
 
@@ -94,10 +104,10 @@ export default function ImageView() {
     const innerCan = dx < 0 ? pi < review.photos.length - 1 : pi > 0
     if (innerCan && stripRef.current) {
       stripRef.current.style.transition = 'none'
-      stripRef.current.style.transform = `translateX(calc(${-pi * 100}% + ${dx}px))`
+      stripRef.current.style.transform = `translate3d(calc(${-pi * 100}% + ${dx}px), 0, 0)`
     } else if (outerRef.current) {
       outerRef.current.style.transition = 'none'
-      outerRef.current.style.transform = `translateX(calc(${-reviewIdx * 100}% + ${dx}px))`
+      outerRef.current.style.transform = `translate3d(calc(${-reviewIdx * 100}% + ${dx}px), 0, 0)`
     }
   }
 
@@ -244,7 +254,7 @@ export default function ImageView() {
         onPointerCancel={onPointerUp}
         onClick={onTap}
       >
-        <div className="iv-story__track" ref={outerRef} style={{ transform: `translateX(${-reviewIdx * 100}%)` }}>
+        <div className="iv-story__track" ref={outerRef} style={{ transform: `translate3d(${-reviewIdx * 100}%, 0, 0)` }}>
           {reviews.map((r, ri) => {
             const k = photoOf(r)
             const isActive = ri === reviewIdx
@@ -254,7 +264,7 @@ export default function ImageView() {
                   <div
                     className="iv-scard__strip"
                     ref={isActive ? stripRef : undefined}
-                    style={{ transform: `translateX(${-k * 100}%)` }}
+                    style={{ transform: `translate3d(${-k * 100}%, 0, 0)` }}
                   >
                     {r.photos.map((p, j) => (
                       <img
