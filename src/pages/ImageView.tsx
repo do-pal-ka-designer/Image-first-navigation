@@ -240,9 +240,12 @@ export default function ImageView() {
             </span>
           </button>
         )}
-        <button className="iv-close" aria-label="Close" onClick={close}>
-          <img src="/assets/iv-cross.svg" width={20} height={20} alt="" />
-        </button>
+        {/* hidden while the gallery is open — tapping outside closes it */}
+        {!pagerOpen && (
+          <button className="iv-close" aria-label="Close" onClick={close}>
+            <img src="/assets/iv-cross.svg" width={20} height={20} alt="" />
+          </button>
+        )}
       </div>
 
       {/* Story cards — one per review; photos change inside the card */}
