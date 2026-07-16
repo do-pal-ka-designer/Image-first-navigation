@@ -37,7 +37,6 @@ export default function ImageView() {
   })
   const [showMore, setShowMore] = useState(false)
   const [pagerOpen, setPagerOpen] = useState(false)
-  const [dimmed, setDimmed] = useState(false)
 
   const outerRef = useRef<HTMLDivElement>(null)
   const stripRef = useRef<HTMLDivElement>(null)
@@ -50,12 +49,6 @@ export default function ImageView() {
 
   // collapse "show more" whenever the review changes
   useEffect(() => setShowMore(false), [reviewIdx])
-
-  // dim follows pagerOpen a frame later so its fade runs outside the morph snapshot
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setDimmed(pagerOpen))
-    return () => cancelAnimationFrame(id)
-  }, [pagerOpen])
 
   // pre-decode every photo up front so cards are fully painted before the
   // user swipes to them — no late image pop-in on navigation
@@ -188,7 +181,7 @@ export default function ImageView() {
   const variantChips = review.variantInfo.replace(/^Bought\s*/i, '').split(', ')
 
   return (
-    <div className={dimmed ? 'app-shell iv iv--gallery-open' : 'app-shell iv'}>
+    <div className="app-shell iv">
       {/* Top bar: gallery pill + close */}
       <div className="iv-topbar">
         {pagerOpen ? (

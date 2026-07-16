@@ -14,6 +14,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 12px 8px;
+  /* fixed height so the bar doesn't collapse (and the card doesn't move)
+     when the pill/close swap out while the gallery is open */
+  min-height: 66px;
   flex-shrink: 0;
 }
 
@@ -178,17 +181,6 @@
   font-weight: 600;
   letter-spacing: -0.1px;
   line-height: 19px;
-}
-
-/* dim the page behind the gallery modal */
-.iv-story,
-.iv-quickview {
-  transition: opacity 0.35s ease;
-}
-
-.iv--gallery-open .iv-story,
-.iv--gallery-open .iv-quickview {
-  opacity: 0.35;
 }
 
 /* ---------- story cards ---------- */
